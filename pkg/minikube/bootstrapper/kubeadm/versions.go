@@ -181,7 +181,7 @@ var versionSpecificOpts = []VersionedExtraOption{
 		},
 		LessThanOrEqual: semver.MustParse("1.9.10"),
 	},
-	NewUnversionedOption(Kubelet, "hostname-override", "minikube"),
+	// NewUnversionedOption(Kubelet, "hostname-override", "minikube"),
 
 	// System pods args
 	NewUnversionedOption(Kubelet, "pod-manifest-path", "/etc/kubernetes/manifests"),

@@ -37,6 +37,7 @@ KERNEL_VERSION ?= 4.16.14
 
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
+GOPATH ?= $(shell go env GOPATH)
 BUILD_DIR ?= ./out
 $(shell mkdir -p $(BUILD_DIR))
 
@@ -186,9 +187,9 @@ drivers: out/docker-machine-driver-hyperkit out/docker-machine-driver-kvm2
 
 .PHONY: images
 images: localkube-image localkube-dind-image localkube-dind-image-devshell
-	gcloud docker -- push $(REGISTRY)/localkube-image:$(TAG)
-	gcloud docker -- push $(REGISTRY)/localkube-dind-image:$(TAG)
-	gcloud docker -- push $(REGISTRY)/localkube-dind-image-devshell:$(TAG)
+	docker push $(REGISTRY)/localkube-image:$(TAG)
+	docker push $(REGISTRY)/localkube-dind-image:$(TAG)
+	docker push $(REGISTRY)/localkube-dind-image-devshell:$(TAG)
 
 .PHONY: integration
 integration: out/minikube
@@ -208,7 +209,7 @@ out/test.d: pkg/minikube/assets/assets.go
 
 -include out/test.d
 test:
-	./test.sh
+	GOPATH=$(GOPATH) ./test.sh
 
 pkg/minikube/assets/assets.go: $(shell find deploy/addons -type f)
 	which go-bindata || GOBIN=$(GOPATH)/bin go get github.com/jteeuwen/go-bindata/...
@@ -347,7 +348,7 @@ storage-provisioner-image: out/storage-provisioner
 
 .PHONY: push-storage-provisioner-image
 push-storage-provisioner-image: storage-provisioner-image
-	gcloud docker -- push $(REGISTRY)/storage-provisioner:$(STORAGE_PROVISIONER_TAG)
+	docker push $(REGISTRY)/storage-provisioner:$(STORAGE_PROVISIONER_TAG)
 
 .PHONY: release-iso
 release-iso: minikube_iso checksum
@@ -355,9 +356,10 @@ release-iso: minikube_iso checksum
 	gsutil cp out/minikube.iso.sha256 gs://$(ISO_BUCKET)/minikube-$(ISO_VERSION).iso.sha256
 
 .PHONY: release-minikube
-release-minikube: out/minikube checksum
+release-minikube: out/minikube out/docker-machine-driver-hyperkit checksum
 	gsutil cp out/minikube-$(GOOS)-$(GOARCH) $(MINIKUBE_UPLOAD_LOCATION)/$(MINIKUBE_VERSION)/minikube-$(GOOS)-$(GOARCH)
 	gsutil cp out/minikube-$(GOOS)-$(GOARCH).sha256 $(MINIKUBE_UPLOAD_LOCATION)/$(MINIKUBE_VERSION)/minikube-$(GOOS)-$(GOARCH).sha256
+	gsutil cp out/docker-machine-driver-hyperkit $(MINIKUBE_UPLOAD_LOCATION)/$(MINIKUBE_VERSION)/docker-machine-driver-hyperkit
 
 out/docker-machine-driver-kvm2.d:
 	$(MAKEDEPEND) out/docker-machine-driver-kvm2 $(ORG) $(KVM_DRIVER_FILES) $^ > $@
