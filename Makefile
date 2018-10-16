@@ -301,7 +301,7 @@ storage-provisioner-image: out/storage-provisioner
 
 .PHONY: push-storage-provisioner-image
 push-storage-provisioner-image: storage-provisioner-image
-	gcloud docker -- push $(REGISTRY)/storage-provisioner:$(STORAGE_PROVISIONER_TAG)
+	docker push $(REGISTRY)/storage-provisioner:$(STORAGE_PROVISIONER_TAG)
 
 .PHONY: release-iso
 release-iso: minikube_iso checksum
@@ -312,6 +312,7 @@ release-iso: minikube_iso checksum
 release-minikube: out/minikube checksum
 	gsutil cp out/minikube-$(GOOS)-$(GOARCH) $(MINIKUBE_UPLOAD_LOCATION)/$(MINIKUBE_VERSION)/minikube-$(GOOS)-$(GOARCH)
 	gsutil cp out/minikube-$(GOOS)-$(GOARCH).sha256 $(MINIKUBE_UPLOAD_LOCATION)/$(MINIKUBE_VERSION)/minikube-$(GOOS)-$(GOARCH).sha256
+	gsutil cp out/docker-machine-driver-hyperkit $(MINIKUBE_UPLOAD_LOCATION)/$(MINIKUBE_VERSION)/docker-machine-driver-hyperkit
 
 out/docker-machine-driver-kvm2.d:
 	$(MAKEDEPEND) out/docker-machine-driver-kvm2 $(ORG) $(KVM_DRIVER_FILES) $^ > $@
